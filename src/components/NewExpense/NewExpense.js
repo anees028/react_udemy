@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './NewExpense.css';
 import ExpenseForm from './ExpenseForm';
 
 
 const NewExpense = (props) => {
+
+    const [showForm, setShowForm] = useState(false);
 
     const saveExpenseDateHandler = (enteredExpenseData) => {
       const expenseData = {
@@ -14,9 +16,17 @@ const NewExpense = (props) => {
       //console.log(expenseData)
     }
 
+    const onHandleForm = () => {
+      setShowForm(true)
+    }
+
     return (
         <div className='new-expense'>
-            <ExpenseForm onSaveExpenseData={saveExpenseDateHandler}/>
+            {!showForm ? 
+              <button onClick={onHandleForm}>Add New Todo</button>
+            :
+              <ExpenseForm onSaveExpenseData={saveExpenseDateHandler} onCancel={() => setShowForm(false)}/>
+            }
         </div>
     )
 
