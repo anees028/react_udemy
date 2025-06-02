@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./ExpenseForm.css";
+import { loadExpenses, saveExpenses } from "../../utils/fileOperations";
 
 const ExpenseForm = (props) => {
 
@@ -7,7 +8,23 @@ const ExpenseForm = (props) => {
   const [ enteredTitle, setEnteredTitle ] = useState('');
   const [ enteredAmount, setEnteredAmount ] = useState('');
   const [ enteredDate, setEnteredDate ] = useState('');
+  const [ lastId, setLastId ] = useState(0);  // Track the last used ID
   
+  // Load existing expenses and set lastId on component mount
+  useEffect(() => {
+    const existingExpenses = loadExpenses();
+    if (existingExpenses.length > 0) {
+      const maxId = Math.max(...existingExpenses.map(expense => expense.id));
+      setLastId(maxId);
+    }
+  }, []);
+
+  // Get today's date and format it as YYYY-MM-DD
+  const today = new Date().toISOString().split('T')[0];
+  // Get date 5 years from now and format it as YYYY-MM-DD
+  const maxDate = new Date();
+  maxDate.setFullYear(maxDate.getFullYear() + 5);
+  const maxDateFormatted = maxDate.toISOString().split('T')[0];
 
   //using the state as signle object form
   // const [userInput, setUserInput] = useState({
@@ -48,15 +65,31 @@ const ExpenseForm = (props) => {
   const submitHandler = (event) => {
     event.preventDefault();
 
+    const newId = lastId + 1;  // Increment the ID
+    setLastId(newId);  // Update the last used ID
+
     const expenseData = {
+      id: newId,
       title: enteredTitle,
       amount: +enteredAmount,
       date: new Date(enteredDate),
     }
     if(expenseData.title !== '' && expenseData.amount !== 0){
-      props.onSaveExpenseData(expenseData)
+      try {
+        // Load existing expenses
+        const existingExpenses = loadExpenses();
+        // Add new expense
+        const updatedExpenses = [...existingExpenses, expenseData];
+        // Save updated expenses
+        saveExpenses(updatedExpenses);
+        // Call parent component's handler
+        props.onSaveExpenseData(expenseData);
+        defaultValue();
+      } catch (error) {
+        console.error('Error saving expense:', error);
+        // You might want to show an error message to the user here
+      }
     }
-    defaultValue();
   }
 
   const defaultValue = () => {
@@ -78,7 +111,13 @@ const ExpenseForm = (props) => {
         </div>
         <div className="new-expense__control">
           <label>Date</label>
-          <input type="date" min="2019-01-01" max="2022-12-31" value={enteredDate} onChange={dateChangeHandler}/>
+          <input 
+            type="date" 
+            min={today} 
+            max={maxDateFormatted} 
+            value={enteredDate} 
+            onChange={dateChangeHandler}
+          />
         </div>
         <div className="new-expense__actions">
           <button type="submit" onClick={props.onCancel}>Cancel</button>
