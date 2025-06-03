@@ -32,7 +32,7 @@ const App = () => {
   //JSX Code sample
   return (
     <div className="App">
-      <h1>Let's get started!</h1>
+      <h1>Expense Tracker</h1>
       <NewExpense onAddExpense={addExpenseHandler}/>
       <Expenses items={expenses}/>
     </div>
