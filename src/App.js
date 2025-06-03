@@ -1,43 +1,32 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
 import Expenses from './components/Expenses/Expenses';
 import NewExpense from './components/NewExpense/NewExpense';
+import { loadExpenses } from './utils/fileOperations';
 
 const App = () => {
+  const [expenses, setExpenses] = useState([]);
 
-  const expenses = [
-    {
-      id: "e1",
-      title: "Toilet Paper",
-      amount: 94.12,
-      date: new Date(2020, 7, 14),
-    },
-    { id: "e2", title: "New TV", amount: 799.49, date: new Date(2021, 2, 12) },
-    {
-      id: "e3",
-      title: "Car Insurance",
-      amount: 294.67,
-      date: new Date(2021, 2, 28),
-    },
-    {
-      id: "e4",
-      title: "New Desk (Wooden)",
-      amount: 450,
-      date: new Date(2021, 5, 12),
-    },
-  ];
-
-  //React Object Element Style.
-  // return React.createElement(
-  //   'div',
-  //   {},
-  //   React.createElement('h2', {}, "Let's get started!"),
-  //   React.createElement(Expenses, { items: expenses })
-  // );
+  // Load saved expenses when component mounts
+  useEffect(() => {
+    const savedExpenses = loadExpenses();
+    if (savedExpenses.length > 0) {
+      // Convert date strings back to Date objects
+      const expensesWithDates = savedExpenses.map(expense => ({
+        ...expense,
+        date: new Date(expense.date)
+      }));
+      setExpenses(expensesWithDates);
+    }
+  }, []);
 
   const addExpenseHandler = (expense) => {
-    expenses.push(expense)
-    console.log(expenses)
+    setExpenses(prevExpenses => {
+      const updatedExpenses = [expense, ...prevExpenses];
+      // Save to localStorage whenever expenses are updated
+      localStorage.setItem('expenses', JSON.stringify(updatedExpenses));
+      return updatedExpenses;
+    });
   }
 
   //JSX Code sample
